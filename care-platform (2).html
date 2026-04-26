@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Care — IRDAI Compliant Broker Platform</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --b900:#042C53;--b800:#0C447C;--b600:#185FA5;--b400:#378ADD;--b200:#85B7EB;--b100:#B5D4F4;--b50:#E6F1FB;
+  --g800:#27500A;--g600:#3B6D11;--g100:#C0DD97;--g50:#EAF3DE;
+  --a800:#633806;--a400:#BA7517;--a50:#FAEEDA;
+  --r800:#791F1F;--r600:#A32D2D;--r50:#FCEBEB;
+  --gy200:#B4B2A9;--gy600:#5F5E5A;
+}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#f0f6ff;color:var(--b900);font-size:14px}
+a{color:inherit;text-decoration:none}
+input,select,textarea,button{font-family:inherit;font-size:13px}
+button{cursor:pointer}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.header{height:56px;background:linear-gradient(90deg,var(--b900) 0%,var(--b800) 60%,var(--b600) 100%);display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0;box-shadow:0 2px 12px rgba(4,44,83,.4);z-index:200}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:210px;background:var(--b900);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:20px;background:#f0f6ff}
+
+/* ── HEADER ── */
+.logo{display:flex;align-items:center;gap:10px;color:white;font-weight:800;font-size:17px;letter-spacing:-.3px}
+.logo-box{width:30px;height:30px;background:var(--b400);border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:13px;color:white}
+.logo-sub{color:var(--b200);font-size:10px;font-weight:400;display:block;margin-top:-2px}
+.header-spacer{flex:1}
+.header-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;padding:5px 13px;border-radius:6px;font-size:12px;font-weight:600;transition:.15s}
+.header-btn:hover{background:rgba(255,255,255,.2)}
+.header-btn.primary{background:var(--b400);border-color:var(--b400)}
+.header-btn.primary:hover{background:var(--b200);color:var(--b900)}
+.notif-btn{position:relative;background:none;border:none;color:white;font-size:18px;padding:4px 8px}
+.notif-badge{position:absolute;top:2px;right:4px;background:#f87171;color:white;font-size:9px;font-weight:800;border-radius:8px;padding:1px 5px;min-width:16px;text-align:center}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(59,109,17,.25);border:1px solid rgba(59,109,17,.4);border-radius:20px;padding:3px 10px;font-size:11px;color:#C0DD97;font-weight:700}
+.live-dot{width:6px;height:6px;background:#4ade80;border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── SIDEBAR ── */
+.sb-section{margin-bottom:4px;padding-top:12px}
+.sb-label{font-size:9px;font-weight:800;color:var(--b400);padding:0 14px 6px;text-transform:uppercase;letter-spacing:1.2px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 14px;color:var(--b100);font-size:12px;font-weight:500;cursor:pointer;border-left:3px solid transparent;transition:.12s;user-select:none}
+.sb-item:hover{background:rgba(55,138,221,.12);color:white;border-left-color:var(--b400)}
+.sb-item.active{background:rgba(55,138,221,.2);color:white;border-left-color:var(--b400)}
+.sb-icon{width:16px;text-align:center;font-size:13px;opacity:.8}
+.sb-count{margin-left:auto;background:var(--b400);color:white;border-radius:9px;padding:1px 7px;font-size:10px;font-weight:800}
+.sb-new{margin-left:auto;background:#f87171;color:white;border-radius:9px;padding:1px 6px;font-size:9px;font-weight:800}
+
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ── TYPOGRAPHY ── */
+.page-title{font-size:20px;font-weight:800;color:var(--b900);margin-bottom:2px}
+.page-sub{font-size:12px;color:var(--b600);margin-bottom:16px}
+.section-title{font-size:14px;font-weight:700;color:var(--b900);margin-bottom:10px}
+
+/* ── CARDS ── */
+.card{background:white;border-radius:12px;border:1px solid var(--b100);padding:16px}
+.card-grid{display:grid;gap:12px}
+.card-grid-2{grid-template-columns:1fr 1fr}
+.card-grid-3{grid-template-columns:1fr 1fr 1fr}
+.card-grid-4{grid-template-columns:repeat(4,1fr)}
+
+/* ── STAT CARDS ── */
+.stat-card{background:white;border-radius:12px;border:1px solid var(--b100);padding:14px 16px}
+.stat-label{font-size:10px;font-weight:700;color:var(--b600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-value{font-size:24px;font-weight:900;color:var(--b900);line-height:1}
+.stat-sub{font-size:11px;color:var(--b400);margin-top:5px}
+.stat-badge{display:inline-block;background:var(--g50);color:var(--g600);border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;border:none;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--b600);color:white}
+.btn-primary:hover{background:var(--b800)}
+.btn-outline{background:white;color:var(--b600);border:1.5px solid var(--b100)}
+.btn-outline:hover{background:var(--b50);border-color:var(--b400)}
+.btn-success{background:var(--g600);color:white}
+.btn-danger{background:var(--r600);color:white}
+.btn-sm{padding:5px 11px;font-size:11px}
+.btn-xs{padding:3px 8px;font-size:10px}
+
+/* ── TAGS ── */
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.tag-blue{background:var(--b50);color:var(--b800)}
+.tag-green{background:var(--g50);color:var(--g800)}
+.tag-amber{background:var(--a50);color:var(--a800)}
+.tag-red{background:var(--r50);color:var(--r800)}
+.tag-navy{background:var(--b600);color:white}
+
+/* ── TABLES ── */
+.table-wrap{background:white;border-radius:12px;border:1px solid var(--b100);overflow:hidden}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{background:var(--b900);color:var(--b100);padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.data-table td{padding:11px 12px;border-bottom:1px solid var(--b50);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#fafcff}
+.data-table tr.highlight td{background:linear-gradient(90deg,#EAF3DE,#fafcff)}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;font-weight:700;color:var(--b800)}
+.form-input,.form-select,.form-textarea{padding:9px 12px;border:1.5px solid var(--b100);border-radius:8px;color:var(--b900);background:white;outline:none;transition:.15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--b400);box-shadow:0 0 0 3px rgba(55,138,221,.1)}
+.form-textarea{resize:vertical;min-height:72px;line-height:1.5}
+.form-section{background:white;border:1px solid var(--b100);border-radius:12px;padding:16px;margin-bottom:14px}
+.form-section-title{font-size:13px;font-weight:800;color:var(--b900);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.form-step-num{width:22px;height:22px;background:var(--b600);color:white;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:900;flex-shrink:0}
+
+/* ── PRIORITY PILLS ── */
+.priority-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.priority-pill{background:white;border:2px solid var(--b100);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:.15s;font-size:11px;color:var(--b600);font-weight:600;user-select:none}
+.priority-pill:hover{border-color:var(--b400);background:var(--b50)}
+.priority-pill.on{border-color:var(--b600);background:var(--b600);color:white}
+.priority-icon{font-size:16px;display:block;margin-bottom:3px}
+
+/* ── WEIGHT SLIDERS ── */
+.weight-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.weight-label{font-size:12px;color:var(--b800);font-weight:600;width:170px;flex-shrink:0}
+.weight-slider{flex:1;accent-color:var(--b600);height:4px}
+.weight-pct{font-size:12px;font-weight:800;color:var(--b900);width:34px;text-align:right;flex-shrink:0}
+
+/* ── INSURER CHIPS ── */
+.insurer-chips{display:flex;flex-wrap:wrap;gap:8px}
+.i-chip{display:flex;align-items:center;gap:7px;background:var(--b50);border:2px solid var(--b100);border-radius:20px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--b900);transition:.15s;user-select:none}
+.i-chip.on{background:var(--b600);color:white;border-color:var(--b600)}
+.i-chip-dot{width:8px;height:8px;border-radius:50%;border:2px solid currentColor}
+.i-chip.on .i-chip-dot{background:white}
+
+/* ── UPLOAD ── */
+.upload-zone{border:2px dashed var(--b100);border-radius:10px;padding:22px;text-align:center;background:#fafcff;cursor:pointer;transition:.15s}
+.upload-zone:hover{border-color:var(--b400);background:var(--b50)}
+
+/* ── SCORE BAR ── */
+.score-bar{height:5px;border-radius:3px;background:var(--b50);margin-top:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;background:var(--b400);transition:width .4s}
+.score-fill.green{background:var(--g600)}
+
+/* ── RANK BADGE ── */
+.rank{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:900;color:white;flex-shrink:0}
+.rank-1{background:#E6A817}
+.rank-2{background:var(--b200);color:var(--b900)}
+.rank-3{background:var(--gy200);color:var(--gy600)}
+.rank-4{background:#ccc;color:#555}
+
+/* ── INSURER AVATAR ── */
+.ins-avatar{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:10px;color:white;flex-shrink:0}
+.av-bajaj{background:#E05C00}
+.av-hdfc{background:#004C97}
+.av-icici{background:#003087}
+.av-tata{background:#1C5BA3}
+
+/* ── STARS ── */
+.stars{color:#E6A817;font-size:12px;letter-spacing:1px}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:white;border-radius:10px;border:1px solid var(--b100);align-items:center}
+.filter-label{font-size:10px;font-weight:800;color:var(--b600);margin-right:2px;text-transform:uppercase;letter-spacing:.5px}
+.f-chip{padding:4px 12px;border:1.5px solid var(--b100);border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;color:var(--b600);background:white;transition:.12s}
+.f-chip:hover,.f-chip.on{background:var(--b600);color:white;border-color:var(--b600)}
+
+/* ── ALERT ── */
+.alert{background:var(--b50);border-left:4px solid var(--b600);border-radius:0 8px 8px 0;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--b900);line-height:1.5;display:flex;gap:8px;align-items:flex-start}
+.alert-warn{background:var(--a50);border-left-color:var(--a400)}
+.alert-success{background:var(--g50);border-left-color:var(--g600)}
+
+/* ── RECOMMENDATION CARD ── */
+.rec-card{background:linear-gradient(135deg,var(--b900) 0%,var(--b600) 100%);border-radius:14px;padding:20px;color:white;margin-bottom:16px;position:relative;overflow:hidden}
+.rec-card::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:rgba(255,255,255,.05);border-radius:50%}
+.rec-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--b200);margin-bottom:5px;font-weight:700}
+.rec-name{font-size:22px;font-weight:900;margin-bottom:3px}
+.rec-desc{font-size:12px;color:var(--b200);line-height:1.5}
+.rec-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.rec-tag{background:rgba(255,255,255,.15);padding:3px 10px;border-radius:8px;font-size:10px;font-weight:700}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;margin-bottom:16px;background:white;border:1px solid var(--b100);border-radius:10px;padding:3px;width:fit-content}
+.tab{padding:7px 16px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:var(--b600);transition:.12s;user-select:none}
+.tab:hover:not(.on){background:var(--b50)}
+.tab.on{background:var(--b600);color:white}
+
+/* ── RELIABILITY METRICS ── */
+.rel-metric{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--b50);font-size:12px}
+.rel-metric:last-child{border:none}
+.rel-key{color:var(--b600);font-weight:500}
+.rel-val{font-weight:700;color:var(--b900)}
+.rel-val.good{color:var(--g600)}
+.rel-val.warn{color:var(--a400)}
+.rel-val.bad{color:var(--r600)}
+
+/* ── COMP BID CARDS ── */
+.bid-card{background:white;border:2px solid var(--b100);border-radius:12px;padding:16px;position:relative;transition:.15s}
+.bid-card:hover{border-color:var(--b400)}
+.bid-card.top{border-color:var(--b600)}
+.bid-top-badge{position:absolute;top:10px;right:10px;background:var(--b600);color:white;font-size:9px;font-weight:800;padding:2px 8px;border-radius:8px;letter-spacing:.5px}
+.bid-val{font-size:28px;font-weight:900;color:var(--b900);margin:8px 0 2px}
+.bid-val span{color:var(--b600)}
+.bid-extras{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.bid-extra{font-size:11px;color:var(--b600);display:flex;align-items:center;gap:6px}
+.bid-extra::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--b400);flex-shrink:0}
+.bid-earn{margin-top:10px;background:var(--b50);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;color:var(--b800)}
+
+/* ── CHAT ── */
+.chat-wrap{background:white;border-radius:12px;border:1px solid var(--b100);overflow:hidden;display:flex;flex-direction:column}
+.chat-header{background:var(--b900);color:white;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.chat-rm-name{font-size:13px;font-weight:700}
+.chat-rm-status{font-size:10px;color:var(--b200);margin-top:1px}
+.chat-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f8fbff;min-height:200px;max-height:300px}
+.chat-msg{max-width:78%;padding:8px 12px;border-radius:12px;font-size:12px;line-height:1.5;word-break:break-word}
+.msg-rm{background:var(--b50);color:var(--b900);align-self:flex-start;border-bottom-left-radius:3px}
+.msg-user{background:var(--b600);color:white;align-self:flex-end;border-bottom-right-radius:3px}
+.msg-sender{font-size:10px;font-weight:700;margin-bottom:2px;opacity:.7}
+.msg-time{font-size:9px;opacity:.5;margin-top:2px;text-align:right}
+.typing-indicator{align-self:flex-start;background:var(--b50);border-radius:12px;padding:8px 14px;font-size:11px;color:var(--b400);font-style:italic}
+.chat-input-row{display:flex;gap:8px;padding:10px;border-top:1px solid var(--b50);flex-shrink:0}
+.chat-input{flex:1;padding:8px 12px;border:1.5px solid var(--b100);border-radius:8px;font-size:12px;outline:none;transition:.15s}
+.chat-input:focus{border-color:var(--b400)}
+.chat-send{background:var(--b600);color:white;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700}
+.chat-send:hover{background:var(--b800)}
+
+/* ── SMART HELP BUTTONS ── */
+.smart-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.smart-btn{background:white;border:1.5px solid var(--b400);color:var(--b800);border-radius:20px;padding:7px 15px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;transition:.15s}
+.smart-btn:hover{background:var(--b600);color:white;border-color:var(--b600)}
+
+/* ── COMPLIANCE ── */
+.comp-row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:white;border-radius:8px;border:1px solid var(--b100);margin-bottom:8px}
+.comp-icon{width:32px;height:32px;border-radius:8px;background:var(--b50);display:grid;place-items:center;font-size:14px;flex-shrink:0}
+.comp-text{flex:1}
+.comp-title{font-size:12px;font-weight:700;color:var(--b900)}
+.comp-desc{font-size:11px;color:var(--b600);margin-top:1px}
+.comp-status{font-size:10px;font-weight:800;padding:3px 10px;border-radius:8px;white-space:nowrap}
+.s-ok{background:var(--g50);color:var(--g800)}
+.s-warn{background:var(--a50);color:var(--a800)}
+
+/* ── PROGRESS STEPPER ── */
+.stepper{display:flex;align-items:center;margin-bottom:20px}
+.step{display:flex;align-items:center;gap:7px;flex:1}
+.step-circle{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;flex-shrink:0}
+.step-done{background:var(--b600);color:white}
+.step-active{background:white;border:2px solid var(--b600);color:var(--b600);box-shadow:0 0 0 3px rgba(24,95,165,.2)}
+.step-todo{background:var(--b50);border:2px solid var(--b100);color:var(--gy200)}
+.step-label{font-size:11px;font-weight:600;color:var(--b600)}
+.step-label.dim{color:var(--gy200)}
+.step-line{flex:1;height:2px;background:var(--b100);margin:0 4px}
+.step-line.done{background:var(--b600)}
+
+/* ── MISC ── */
+.flex{display:flex;align-items:center}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.gap-8{gap:8px}
+.gap-12{gap:12px}
+.gap-16{gap:16px}
+.mb-8{margin-bottom:8px}
+.mb-12{margin-bottom:12px}
+.mb-16{margin-bottom:16px}
+.mb-20{margin-bottom:20px}
+.text-blue{color:var(--b600)}
+.text-green{color:var(--g600)}
+.text-amber{color:var(--a400)}
+.text-red{color:var(--r600)}
+.text-sm{font-size:11px}
+.text-xs{font-size:10px}
+.font-bold{font-weight:800}
+
+/* ── NOTIFICATION PANEL ── */
+.notif-panel{position:fixed;top:56px;right:0;width:320px;background:white;border:1px solid var(--b100);border-top:none;border-radius:0 0 12px 12px;box-shadow:0 8px 24px rgba(4,44,83,.15);z-index:300;display:none;max-height:400px;overflow-y:auto}
+.notif-panel.open{display:block;animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.notif-item{padding:10px 14px;border-bottom:1px solid var(--b50);font-size:12px;color:var(--b900);cursor:pointer}
+.notif-item:hover{background:var(--b50)}
+.notif-item.unread{border-left:3px solid var(--b400)}
+.notif-time{font-size:10px;color:var(--b400);margin-top:2px}
+.notif-empty{padding:20px;text-align:center;color:var(--gy200);font-size:12px}
+
+/* ── QUOTE LIVE STATUS ── */
+.quote-live-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;border:1px solid var(--b100);background:white;margin-bottom:8px;font-size:12px}
+.quote-live-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-green{background:#4ade80;animation:pulse 1.5s infinite}
+.dot-amber{background:#fbbf24;animation:pulse 1.5s infinite}
+.dot-gray{background:var(--gy200)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b100);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-box">C</div>
+    <div>Care<span class="logo-sub">IRDAI Compliant · B2B Insurance Broker Platform</span></div>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="live-pill"><span class="live-dot"></span>Connected</div>
+  <button class="header-btn" onclick="showPage('dashboard')">Dashboard</button>
+  <button class="header-btn" onclick="showPage('rfq')">New RFQ</button>
+  <button class="header-btn" onclick="showPage('quotes')">Quotes</button>
+  <button class="header-btn" onclick="showPage('support')">RM Connect</button>
+  <button class="header-btn primary" onclick="showPage('rfq')">+ Submit RFQ</button>
+  <button class="notif-btn" onclick="toggleNotif()">🔔<span class="notif-badge" id="notif-count">0</span></button>
+
+  <div class="notif-panel" id="notif-panel">
+    <div style="padding:10px 14px;font-size:11px;font-weight:800;color:var(--b800);border-bottom:1px solid var(--b50);display:flex;justify-content:space-between;align-items:center">
+      NOTIFICATIONS
+      <button class="btn-xs btn btn-outline" onclick="markRead()">Mark all read</button>
+    </div>
+    <div id="notif-list"><div class="notif-empty">No notifications yet</div></div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="sb-section">
+    <div class="sb-label">Overview</div>
+    <div class="sb-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="sb-icon">▦</span> Dashboard</div>
+    <div class="sb-item" data-page="rfq" onclick="showPage('rfq')"><span class="sb-icon">✦</span> New RFQ</div>
+    <div class="sb-item" data-page="quotes" onclick="showPage('quotes')"><span class="sb-icon">◈</span> Quote Inbox <span class="sb-count" id="sb-q-count">5</span></div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Intelligence</div>
+    <div class="sb-item" data-page="ranking" onclick="showPage('ranking')"><span class="sb-icon">◎</span> Quote Ranking</div>
+    <div class="sb-item" data-page="compensation" onclick="showPage('compensation')"><span class="sb-icon">₹</span> Compensation Bids</div>
+    <div class="sb-item" data-page="reliability" onclick="showPage('reliability')"><span class="sb-icon">◆</span> Reliability Data</div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Communication</div>
+    <div class="sb-item" data-page="support" onclick="showPage('support')"><span class="sb-icon">◉</span> RM / UW Connect <span class="sb-new" id="sb-msg-badge" style="display:none">NEW</span></div>
+    <div class="sb-item" data-page="negotiation" onclick="showPage('negotiation')"><span class="sb-icon">◌</span> Negotiation Desk</div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Compliance</div>
+    <div class="sb-item" data-page="compliance" onclick="showPage('compliance')"><span class="sb-icon">✓</span> IRDAI Controls</div>
+    <div class="sb-item"><span class="sb-icon">⊡</span> Audit Logs</div>
+  </div>
+</div>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content">
+
+<!-- ── DASHBOARD ── -->
+<div class="page active" id="page-dashboard">
+  <div class="flex-between mb-16">
+    <div>
+      <div class="page-title">Broker Command Center</div>
+      <div class="page-sub">Welcome back, Rahul Mehta · License: IIB/DB/12345 · Maharashtra</div>
+    </div>
+    <button class="btn btn-primary" onclick="showPage('rfq')">+ New RFQ</button>
+  </div>
+
+  <div class="card-grid card-grid-4 mb-16" id="stats-row">
+    <div class="stat-card"><div class="stat-label">Active RFQs</div><div class="stat-value text-blue" id="stat-rfqs">24</div><div class="stat-sub">↑ 6 this week</div></div>
+    <div class="stat-card"><div class="stat-label">Quotes Received</div><div class="stat-value text-blue" id="stat-quotes">87</div><div class="stat-sub">Avg 3.6 per RFQ</div></div>
+    <div class="stat-card"><div class="stat-label">Policies Issued</div><div class="stat-value" style="color:var(--g600)">142</div><div class="stat-sub">₹2.4Cr premium <span class="stat-badge">FY25</span></div></div>
+    <div class="stat-card"><div class="stat-label">Commission Earned</div><div class="stat-value" style="color:#E6A817">₹18.4L</div><div class="stat-sub">Avg 12.4% rate</div></div>
+  </div>
+
+  <div id="dash-alert"></div>
+
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px">
+    <div>
+      <div class="flex-between mb-12">
+        <div class="section-title">Recent RFQ Activity</div>
+        <button class="btn btn-outline btn-sm">View All</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>RFQ ID</th><th>Client</th><th>Type</th><th>Quotes</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="rfq-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="section-title mb-12">Insurer Performance Snapshot</div>
+      <div id="insurer-snapshot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RFQ FORM ── -->
+<div class="page" id="page-rfq">
+  <div class="page-title">Single RFQ Submission</div>
+  <div class="page-sub">One form → auto-routed to multiple insurers · Reduces email/WhatsApp/call dependency</div>
+
+  <div class="stepper mb-20">
+    <div class="step"><div class="step-circle step-done">✓</div><div class="step-label">Client Info</div></div>
+    <div class="step-line done"></div>
+    <div class="step"><div class="step-circle step-active">2</div><div class="step-label">Risk & Coverage</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-circle step-todo">3</div><div class="step-label dim">Priority</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-circle step-todo">4</div><div class="step-label dim">Routing</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-circle step-todo">5</div><div class="step-label dim">Submit</div></div>
+  </div>
+
+  <form id="rfq-form" onsubmit="submitRFQ(event)">
+
+  <div class="form-section">
+    <div class="form-section-title"><span class="form-step-num">1</span>Client Information</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Client / Company Name *</label><input class="form-input" id="f-client" placeholder="e.g. Tata Motors Ltd" required/></div>
+      <div class="form-group"><label class="form-label">GST Number</label><input class="form-input" id="f-gst" placeholder="27AABCT1234A1Z5"/></div>
+      <div class="form-group"><label class="form-label">Industry / Sector *</label><select class="form-select" id="f-sector" required><option value="">Select Sector</option><option>Automotive</option><option>Pharma</option><option>IT / Technology</option><option>Manufacturing</option><option>Healthcare</option><option>Logistics</option><option>FMCG</option></select></div>
+      <div class="form-group"><label class="form-label">State / Region</label><select class="form-select" id="f-state"><option>Maharashtra</option><option>Delhi NCR</option><option>Gujarat</option><option>Karnataka</option><option>Tamil Nadu</option><option>West Bengal</option></select></div>
+      <div class="form-group"><label class="form-label">Contact Person</label><input class="form-input" id="f-contact" placeholder="Full name"/></div>
+      <div class="form-group"><label class="form-label">Contact Email</label><input class="form-input" id="f-email" type="email" placeholder="contact@company.com"/></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title"><span class="form-step-num">2</span>Insurance Requirement</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Insurance Type *</label><select class="form-select" id="f-type" required><option value="">Select Type</option><option>Motor / Fleet</option><option>Group Health</option><option>Fire & Allied Perils</option><option>Marine Cargo</option><option>Corporate D&O</option><option>SME Package</option><option>Workmen's Compensation</option></select></div>
+      <div class="form-group"><label class="form-label">Sum Insured (₹) *</label><input class="form-input" id="f-si" type="number" placeholder="e.g. 50000000" required/></div>
+      <div class="form-group"><label class="form-label">Policy Start Date</label><input class="form-input" id="f-start" type="date"/></div>
+      <div class="form-group"><label class="form-label">Policy Period</label><select class="form-select" id="f-period"><option>1 Year</option><option>2 Years</option><option>3 Years</option></select></div>
+      <div class="form-group form-full"><label class="form-label">Required Coverage / Special Clauses</label><textarea class="form-textarea" id="f-coverage" placeholder="Describe coverage scope, endorsements, add-ons, exclusions..."></textarea></div>
+      <div class="form-group form-full"><label class="form-label">Special Underwriting Notes</label><textarea class="form-textarea" id="f-uw-notes" placeholder="Risk details, previous losses, special conditions..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title"><span class="form-step-num">3</span>Claims & Previous Policy</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Existing Insurer</label><select class="form-select" id="f-existing"><option value="">No existing insurer</option><option>Bajaj Allianz GI</option><option>ICICI Lombard</option><option>HDFC ERGO</option><option>TATA AIG</option><option>New India Assurance</option></select></div>
+      <div class="form-group"><label class="form-label">Previous Policy Number</label><input class="form-input" id="f-prev-pol" placeholder="Optional"/></div>
+      <div class="form-group"><label class="form-label">Claims in Last 3 Years</label><select class="form-select" id="f-claims"><option value="0">No Claims</option><option value="1">1 Claim</option><option value="2">2–3 Claims</option><option value="4">4+ Claims</option></select></div>
+      <div class="form-group"><label class="form-label">Total Claim Amount (₹)</label><input class="form-input" id="f-claim-amt" type="number" placeholder="0 if no claims" value="0"/></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title"><span class="form-step-num">4</span>Broker Priority Setup — Ranking Engine</div>
+    <div style="font-size:11px;color:var(--b600);margin-bottom:10px">Choose your primary evaluation criterion. The engine ranks all quotes dynamically based on your priority:</div>
+    <div class="priority-grid" id="priority-grid">
+      <div class="priority-pill on" data-p="lowest_premium" onclick="selectPriority(this)"><span class="priority-icon">💰</span>Lowest Premium</div>
+      <div class="priority-pill" data-p="best_claim" onclick="selectPriority(this)"><span class="priority-icon">⚡</span>Best Claim</div>
+      <div class="priority-pill" data-p="highest_commission" onclick="selectPriority(this)"><span class="priority-icon">🏆</span>Max Commission</div>
+      <div class="priority-pill" data-p="fastest_approval" onclick="selectPriority(this)"><span class="priority-icon">🚀</span>Fast Approval</div>
+      <div class="priority-pill" data-p="best_coverage" onclick="selectPriority(this)"><span class="priority-icon">🛡</span>Best Coverage</div>
+      <div class="priority-pill" data-p="renewal_support" onclick="selectPriority(this)"><span class="priority-icon">🔄</span>Renewal Support</div>
+      <div class="priority-pill" data-p="rm_support" onclick="selectPriority(this)"><span class="priority-icon">👤</span>RM Support</div>
+      <div class="priority-pill" data-p="corporate_pref" onclick="selectPriority(this)"><span class="priority-icon">🏢</span>Corporate Pref</div>
+      <div class="priority-pill" data-p="custom" onclick="selectPriority(this)"><span class="priority-icon">⚖</span>Custom Weights</div>
+      <div class="priority-pill" data-p="best_value" onclick="selectPriority(this)"><span class="priority-icon">📊</span>Best Value</div>
+    </div>
+    <div style="background:var(--b50);border-radius:10px;padding:14px">
+      <div style="font-size:12px;font-weight:800;color:var(--b900);margin-bottom:10px">Custom Weightage (adjust percentages — should total 100%):</div>
+      <div class="weight-row"><div class="weight-label">Premium / Price</div><input type="range" class="weight-slider" min="0" max="80" value="40" id="w-prem" oninput="syncSlider('w-prem','wl-prem')"/><span class="weight-pct" id="wl-prem">40%</span></div>
+      <div class="weight-row"><div class="weight-label">Claims Support Quality</div><input type="range" class="weight-slider" min="0" max="80" value="30" id="w-claim" oninput="syncSlider('w-claim','wl-claim')"/><span class="weight-pct" id="wl-claim">30%</span></div>
+      <div class="weight-row"><div class="weight-label">Broker Compensation</div><input type="range" class="weight-slider" min="0" max="80" value="20" id="w-comp" oninput="syncSlider('w-comp','wl-comp')"/><span class="weight-pct" id="wl-comp">20%</span></div>
+      <div class="weight-row"><div class="weight-label">RM / Service Support</div><input type="range" class="weight-slider" min="0" max="80" value="10" id="w-rm" oninput="syncSlider('w-rm','wl-rm')"/><span class="weight-pct" id="wl-rm">10%</span></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title"><span class="form-step-num">5</span>Insurer Routing — Select Targets</div>
+    <div style="font-size:11px;color:var(--b600);margin-bottom:10px">System auto-routes based on underwriting appetite, geography & broker history. Toggle to include/exclude:</div>
+    <div class="insurer-chips" id="insurer-routing">
+      <div class="i-chip on" data-ins="bajaj" onclick="toggleIns(this)"><span class="i-chip-dot"></span>Bajaj Allianz GI</div>
+      <div class="i-chip on" data-ins="hdfc" onclick="toggleIns(this)"><span class="i-chip-dot"></span>HDFC ERGO</div>
+      <div class="i-chip on" data-ins="icici" onclick="toggleIns(this)"><span class="i-chip-dot"></span>ICICI Lombard</div>
+      <div class="i-chip on" data-ins="tata" onclick="toggleIns(this)"><span class="i-chip-dot"></span>TATA AIG</div>
+      <div class="i-chip" data-ins="newIndia" onclick="toggleIns(this)"><span class="i-chip-dot"></span>New India Assurance</div>
+      <div class="i-chip" data-ins="oriental" onclick="toggleIns(this)"><span class="i-chip-dot"></span>Oriental Insurance</div>
+    </div>
+    <div class="alert" style="margin-top:12px;margin-bottom:0">ℹ Auto-routing: All 4 private insurers are eligible for this risk profile in Maharashtra. Public sector insurers available on request.</div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title"><span class="form-step-num">6</span>Document Upload</div>
+    <div class="upload-zone" onclick="fakeUpload()">
+      <div style="font-size:28px;margin-bottom:6px">📎</div>
+      <div style="font-size:13px;color:var(--b600);font-weight:600">Drag & drop or click to upload</div>
+      <div style="font-size:11px;color:var(--b400);margin-top:4px">KYC · Previous Policy · Financials · Survey Reports · Claim Documents — PDF/JPG/PNG max 10MB</div>
+    </div>
+    <div id="uploaded-files" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
+  </div>
+
+  <div class="flex gap-12" style="justify-content:flex-end;padding-bottom:20px">
+    <button type="button" class="btn btn-outline">Save Draft</button>
+    <button type="submit" class="btn btn-primary" id="submit-rfq-btn">Submit RFQ to Insurers →</button>
+  </div>
+  </form>
+</div>
+
+<!-- ── QUOTE INBOX ── -->
+<div class="page" id="page-quotes">
+  <div class="flex-between mb-16">
+    <div>
+      <div class="page-title">Quote Inbox</div>
+      <div class="page-sub" id="quote-inbox-sub">Select an RFQ to view quotes</div>
+    </div>
+    <div class="flex gap-8">
+      <select class="form-select btn-sm" id="rfq-selector" onchange="loadQuotes(this.value)"></select>
+      <button class="btn btn-primary btn-sm" onclick="showPage('ranking')">Rank Quotes →</button>
+    </div>
+  </div>
+
+  <div id="live-status-row" class="mb-12"></div>
+
+  <div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <div class="f-chip on" onclick="filterQuotes('all',this)">All</div>
+    <div class="f-chip" onclick="filterQuotes('premium',this)">Lowest Premium</div>
+    <div class="f-chip" onclick="filterQuotes('commission',this)">Best Commission</div>
+    <div class="f-chip" onclick="filterQuotes('claims',this)">Best Claims Ratio</div>
+    <div class="f-chip" onclick="filterQuotes('settle',this)">Fastest Settlement</div>
+    <div class="f-chip" onclick="filterQuotes('rm',this)">Best RM</div>
+    <div class="f-chip" onclick="filterQuotes('score',this)">Overall Score</div>
+  </div>
+
+  <div class="table-wrap mb-16">
+    <table class="data-table">
+      <thead><tr><th>Rank</th><th>Insurer</th><th>Annual Premium</th><th>Commission</th><th>Claim Ratio</th><th>Settle Time</th><th>RM Rating</th><th>Score</th><th>Action</th></tr></thead>
+      <tbody id="quotes-table-body"></tbody>
+    </table>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="quote-summary-cards"></div>
+</div>
+
+<!-- ── QUOTE RANKING ── -->
+<div class="page" id="page-ranking">
+  <div class="page-title">Requirement-Based Ranking Engine</div>
+  <div class="page-sub">Quotes ranked dynamically by your weighted criteria — not just cheapest premium</div>
+
+  <div id="rec-card-wrap" class="mb-16"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="section-title mb-12">Adjust Priority Weightage</div>
+      <div class="weight-row"><div class="weight-label">Premium / Price</div><input type="range" class="weight-slider" min="0" max="80" value="40" id="rw-prem" oninput="syncSlider('rw-prem','rwl-prem');rerank()"/><span class="weight-pct" id="rwl-prem">40%</span></div>
+      <div class="weight-row"><div class="weight-label">Claims Support</div><input type="range" class="weight-slider" min="0" max="80" value="30" id="rw-claim" oninput="syncSlider('rw-claim','rwl-claim');rerank()"/><span class="weight-pct" id="rwl-claim">30%</span></div>
+      <div class="weight-row"><div class="weight-label">Broker Compensation</div><input type="range" class="weight-slider" min="0" max="80" value="20" id="rw-comp" oninput="syncSlider('rw-comp','rwl-comp');rerank()"/><span class="weight-pct" id="rwl-comp">20%</span></div>
+      <div class="weight-row"><div class="weight-label">RM Support</div><input type="range" class="weight-slider" min="0" max="80" value="10" id="rw-rm" oninput="syncSlider('rw-rm','rwl-rm');rerank()"/><span class="weight-pct" id="rwl-rm">10%</span></div>
+    </div>
+    <div class="card">
+      <div class="section-title mb-12">Live Ranking Result</div>
+      <div id="rank-result-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── COMPENSATION BIDS ── -->
+<div class="page" id="page-compensation">
+  <div class="flex-between mb-16">
+    <div><div class="page-title">Compensation Bidding Engine</div><div class="page-sub">Live insurer bids — compare your earning opportunity on this policy</div></div>
+    <div class="live-pill"><span class="live-dot"></span>Bids Live</div>
+  </div>
+  <div class="card-grid card-grid-2 mb-16" id="bid-cards"></div>
+</div>
+
+<!-- ── RELIABILITY ── -->
+<div class="page" id="page-reliability">
+  <div class="page-title">Insurer Reliability Dashboard</div>
+  <div class="page-sub mb-16">Claims · Compensation · Relationship · Historical Business</div>
+  <div class="tabs" id="rel-tabs">
+    <div class="tab on" onclick="relTab(this,'rel-claims')">Claims</div>
+    <div class="tab" onclick="relTab(this,'rel-comp')">Compensation</div>
+    <div class="tab" onclick="relTab(this,'rel-rel')">Relationship</div>
+    <div class="tab" onclick="relTab(this,'rel-hist')">Your History</div>
+  </div>
+  <div id="rel-claims"><div class="card-grid card-grid-2" id="rel-claims-grid"></div></div>
+  <div id="rel-comp" style="display:none"><div class="card-grid card-grid-2" id="rel-comp-grid"></div></div>
+  <div id="rel-rel" style="display:none"><div class="card-grid card-grid-2" id="rel-rel-grid"></div></div>
+  <div id="rel-hist" style="display:none">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Insurer</th><th>Policies Issued</th><th>Premium Volume</th><th>Claims Filed</th><th>Claims Success</th><th>Renewal Rate</th><th>Disputes</th></tr></thead>
+        <tbody id="rel-hist-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── RM / SUPPORT ── -->
+<div class="page" id="page-support">
+  <div class="page-title">Underwriter & RM Support Layer</div>
+  <div class="page-sub">Direct connect — chat, negotiate, escalate, request discounts</div>
+
+  <div class="alert alert-success mb-16">✅ WebSocket connected — all messages are live with intelligent RM auto-replies and real conversation history.</div>
+
+  <div class="smart-grid mb-16">
+    <button class="smart-btn" onclick="smartHelp('bajaj','premium')">💰 Need Better Premium?</button>
+    <button class="smart-btn" onclick="smartHelp('bajaj','claim')">⚡ Need Faster Claims?</button>
+    <button class="smart-btn" onclick="smartHelp('bajaj','commission')">📈 Need Higher Commission?</button>
+    <button class="smart-btn" onclick="smartHelp('bajaj','escalate')">🔼 Escalate for Approval</button>
+    <button class="smart-btn" onclick="smartHelp('bajaj','discount')">🏷 Request Special Discount</button>
+    <button class="smart-btn" onclick="smartHelp('bajaj','rm')">👤 Need Better RM Support?</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="chat-panels"></div>
+</div>
+
+<!-- ── NEGOTIATION ── -->
+<div class="page" id="page-negotiation">
+  <div class="page-title">Negotiation Desk</div>
+  <div class="page-sub mb-16">All 4 insurer channels open — send negotiation requests directly to zonal heads</div>
+  <div class="alert mb-16">🤝 <strong>Negotiation Mode Active:</strong> Messages sent here are flagged as formal negotiation requests and routed to the insurer's zonal head and senior underwriter directly.</div>
+
+  <div class="smart-grid mb-16">
+    <button class="smart-btn" onclick="smartHelpDesk('bajaj','premium')">💰 Bulk — Request Better Premium All</button>
+    <button class="smart-btn" onclick="smartHelpDesk('bajaj','commission')">📈 Bulk — Request Higher Commission All</button>
+    <button class="smart-btn" onclick="smartHelpDesk('bajaj','escalate')">🔼 Bulk — Escalate All for Approval</button>
+    <button class="smart-btn" onclick="smartHelpDesk('bajaj','discount')">🏷 Bulk — Request Special Discount All</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="negotiation-panels"></div>
+</div>
+
+<!-- ── COMPLIANCE ── -->
+<div class="page" id="page-compliance">
+  <div class="flex-between mb-16">
+    <div><div class="page-title">IRDAI Compliance Layer</div><div class="page-sub">Broker license · Consent tracking · Audit logs · Commission transparency</div></div>
+    <span style="background:var(--g50);color:var(--g800);font-size:11px;font-weight:800;padding:5px 14px;border-radius:20px;border:1px solid var(--g100)">✓ Fully Compliant</span>
+  </div>
+
+  <div class="card-grid card-grid-4 mb-16">
+    <div class="stat-card"><div class="stat-label">Broker License</div><div class="stat-value text-green" style="font-size:18px">✓ Valid</div><div class="stat-sub">IIB/DB/12345 · Exp: Mar 2027</div></div>
+    <div class="stat-card"><div class="stat-label">Consent Records</div><div class="stat-value text-blue">142</div><div class="stat-sub">All digitally captured</div></div>
+    <div class="stat-card"><div class="stat-label">Audit Log Entries</div><div class="stat-value text-blue">1,284</div><div class="stat-sub">Last 12 months</div></div>
+    <div class="stat-card"><div class="stat-label">Commission Disclosed</div><div class="stat-value text-green">100%</div><div class="stat-sub">Zero hidden commission</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div>
+      <div class="section-title mb-12">Compliance Checklist</div>
+      <div class="comp-row"><div class="comp-icon">🪪</div><div class="comp-text"><div class="comp-title">Broker License Validation</div><div class="comp-desc">IRDAI registration verified and active</div></div><span class="comp-status s-ok">✓ Valid</span></div>
+      <div class="comp-row"><div class="comp-icon">✅</div><div class="comp-text"><div class="comp-title">Client Consent Tracking</div><div class="comp-desc">Digital consent for all RFQ submissions</div></div><span class="comp-status s-ok">✓ Done</span></div>
+      <div class="comp-row"><div class="comp-icon">📋</div><div class="comp-text"><div class="comp-title">Commission Disclosure</div><div class="comp-desc">All commissions disclosed per IRDAI norms</div></div><span class="comp-status s-ok">✓ Disclosed</span></div>
+      <div class="comp-row"><div class="comp-icon">📑</div><div class="comp-text"><div class="comp-title">Audit Trail</div><div class="comp-desc">Every action logged with timestamp & user</div></div><span class="comp-status s-ok">✓ Active</span></div>
+      <div class="comp-row"><div class="comp-icon">🔒</div><div class="comp-text"><div class="comp-title">No Hidden Manipulation</div><div class="comp-desc">Commission bidding engine fully transparent</div></div><span class="comp-status s-ok">✓ Clear</span></div>
+      <div class="comp-row"><div class="comp-icon">📊</div><div class="comp-text"><div class="comp-title">Regulatory Reporting</div><div class="comp-desc">Monthly report due to IRDAI portal</div></div><span class="comp-status s-warn">⚠ Due 5 May</span></div>
+      <div class="comp-row"><div class="comp-icon">🏢</div><div class="comp-text"><div class="comp-title">Insurer Compliance Controls</div><div class="comp-desc">Only IRDAI-registered insurers on platform</div></div><span class="comp-status s-ok">✓ Verified</span></div>
+      <div style="margin-top:12px"><button class="btn btn-primary btn-sm">Generate IRDAI Report →</button></div>
+    </div>
+    <div>
+      <div class="section-title mb-12">Recent Audit Log</div>
+      <div class="table-wrap">
+        <table class="data-table" id="audit-table">
+          <thead><tr><th>Timestamp</th><th>Action</th><th>User</th><th>Reference</th></tr></thead>
+          <tbody id="audit-tbody"></tbody>
+        </table>
+      </div>
+      <div class="alert mt-12" style="margin-top:12px">📊 IRDAI monthly report is due by 5 May 2025. All data is pre-compiled — click Generate to download.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const API = '';   // same origin
+const WS_URL = `ws://${location.host}`;
+
+const INSURERS = [
+  {id:'bajaj',name:'Bajaj Allianz GI',short:'BJ',cls:'av-bajaj',rmName:'Priya Sharma',uwName:'Rajesh Kumar',baseCommission:12,renewalBonus:2,claimRatio:98.2,settleTime:18,rejectionRatio:1.8,rmRating:5,score:92,cashless:8200,commPayDays:7,uwResponseHrs:2,commPaySpeed:'Excellent',bonusConsistency:'100%'},
+  {id:'hdfc',name:'HDFC ERGO',short:'HD',cls:'av-hdfc',rmName:'Amit Verma',uwName:'Sunita Rao',baseCommission:11,renewalBonus:1,claimRatio:96.8,settleTime:14,rejectionRatio:3.2,rmRating:4,score:85,cashless:7500,commPayDays:10,uwResponseHrs:4,commPaySpeed:'Good',bonusConsistency:'95%'},
+  {id:'icici',name:'ICICI Lombard',short:'IC',cls:'av-icici',rmName:'Deepak Patel',uwName:'Kavita Nair',baseCommission:10,renewalBonus:0.5,claimRatio:94.1,settleTime:22,rejectionRatio:5.9,rmRating:4,score:78,cashless:9100,commPayDays:15,uwResponseHrs:8,commPaySpeed:'Average',bonusConsistency:'82%'},
+  {id:'tata',name:'TATA AIG',short:'TA',cls:'av-tata',rmName:'Rohit Singh',uwName:'Meera Joshi',baseCommission:9.5,renewalBonus:0,claimRatio:88.4,settleTime:28,rejectionRatio:11.6,rmRating:3,score:69,cashless:5200,commPayDays:20,uwResponseHrs:24,commPaySpeed:'Poor',bonusConsistency:'68%'},
+];
+
+const HIST = [
+  {id:'bajaj',policies:48,premium:'₹89L',claims:'12/12',success:'100%',renewal:'94%',disputes:'None',successCls:'good'},
+  {id:'hdfc',policies:36,premium:'₹64L',claims:'7/8',success:'87.5%',renewal:'88%',disputes:'1 resolved',successCls:''},
+  {id:'icici',policies:28,premium:'₹51L',claims:'4/5',success:'80%',renewal:'76%',disputes:'2 resolved',successCls:'warn'},
+  {id:'tata',policies:12,premium:'₹18L',claims:'2/3',success:'66%',renewal:'58%',disputes:'1 pending',successCls:'bad'},
+];
+
+// ══════════════════════════════════════════════════════
+// WEBSOCKET
+// ══════════════════════════════════════════════════════
+let ws;
+let chatRooms = {}; // insurerId → messages[]
+let msgBadgeCount = 0;
+
+function connectWS(){
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    console.log('WS connected');
+    document.querySelector('.live-pill').innerHTML = '<span class="live-dot"></span>Connected';
+    // Join rooms for both support and negotiation panels
+    INSURERS.forEach(ins => {
+      ws.send(JSON.stringify({type:'join_room', roomId:`broker-sup-${ins.id}`}));
+      ws.send(JSON.stringify({type:'join_room', roomId:`broker-neg-${ins.id}`}));
+      if(!chatRooms[ins.id]) chatRooms[ins.id] = [];
+    });
+  };
+  ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+
+    if(data.type === 'history'){
+      const insId = data.roomId.replace('broker-sup-','').replace('broker-neg-','').replace('broker-','');
+      const mode = data.roomId.includes('-neg-') ? 'neg' : 'sup';
+      const key = mode==='neg' ? `neg-${insId}` : insId;
+      chatRooms[key] = data.messages || [];
+      // Render into panel if visible
+      renderChatInPanel(`${mode}-${insId}`, chatRooms[key]);
+    }
+
+    if(data.type === 'new_message'){
+      const msg = data.message;
+      // Determine which panel this belongs to
+      const roomId = msg.roomId || '';
+      const insId = roomId.replace('broker-sup-','').replace('broker-neg-','').replace('broker-','');
+      const mode = roomId.includes('-neg-') ? 'neg' : 'sup';
+      const key = mode==='neg' ? `neg-${insId}` : insId;
+      if(!chatRooms[key]) chatRooms[key]=[];
+      chatRooms[key].push(msg);
+
+      // Only append RM replies (user messages already shown instantly)
+      if(msg.role === 'rm'){
+        const panelId = `${mode}-${insId}`;
+        appendMsgToPanel(panelId, msg);
+        msgBadgeCount++;
+        document.getElementById('sb-msg-badge').style.display = 'inline-block';
+        pushNotif(`New message from ${msg.sender.split('·')[0].trim()}`);
+      }
+    }
+
+    if(data.type === 'quote_received'){
+      handleQuoteReceived(data);
+    }
+    if(data.type === 'notification'){
+      pushNotif(data.notification.text);
+    }
+  };
+  ws.onclose = () => {
+    document.querySelector('.live-pill').innerHTML = '<span style="width:6px;height:6px;background:#f87171;border-radius:50%;display:inline-block"></span> Reconnecting...';
+    setTimeout(connectWS, 2000);
+  };
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ══════════════════════════════════════════════════════
+// PAGE NAV
+// ══════════════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
+  const sbItem = document.querySelector(`.sb-item[data-page="${id}"]`);
+  if(sbItem) sbItem.classList.add('active');
+  if(id==='support') renderSupportPage();
+  if(id==='negotiation') renderNegotiationPage();
+  if(id==='quotes') loadQuotes(document.getElementById('rfq-selector')?.value || 'RFQ-2025-0891');
+  if(id==='ranking') rerank();
+  if(id==='compensation') renderBids();
+  if(id==='reliability') renderReliability();
+  if(id==='compliance') renderAuditLog();
+}
+
+// ══════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════
+async function loadDashboard(){
+  try{
+    const [statsRes, rfqsRes] = await Promise.all([fetch('/api/stats'), fetch('/api/rfqs')]);
+    const stats = await statsRes.json();
+    const rfqs = await rfqsRes.json();
+    document.getElementById('stat-rfqs').textContent = stats.activeRfqs;
+    document.getElementById('stat-quotes').textContent = stats.quotesReceived;
+    renderRFQTable(rfqs.slice(0,6));
+    renderInsurerSnapshot();
+    populateRFQSelector(rfqs);
+  }catch(e){ console.error(e); }
+}
+
+function renderRFQTable(rfqs){
+  const statusMap = {
+    all_received:['All Received','text-green'],
+    partial:['Awaiting Quotes','text-amber'],
+    decision_pending:['Decision Pending','text-blue'],
+    negotiating:['Negotiating','text-amber'],
+    submitted:['Submitted','text-blue'],
+    closed:['Closed','']
+  };
+  const tbody = document.getElementById('rfq-table-body');
+  tbody.innerHTML = rfqs.map(r=>{
+    const [statusLabel, statusCls] = statusMap[r.status] || ['Unknown',''];
+    const received = r.quotesReceived || 0;
+    const total = r.totalInsurers || 4;
+    return `<tr>
+      <td><span class="font-bold text-blue">${r.id}</span></td>
+      <td>${r.client || '—'}</td>
+      <td><span class="tag tag-blue">${r.type || '—'}</span></td>
+      <td><strong>${received}</strong>/${total}</td>
+      <td><span class="${statusCls}" style="font-weight:700">● ${statusLabel}</span></td>
+      <td><button class="btn btn-primary btn-xs" onclick="showPage('quotes')">Compare</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInsurerSnapshot(){
+  const el = document.getElementById('insurer-snapshot');
+  el.innerHTML = INSURERS.map(ins=>`
+    <div class="card mb-8 flex gap-12" style="padding:12px;flex-direction:row;align-items:center">
+      <div class="ins-avatar ${ins.cls}">${ins.short}</div>
+      <div style="flex:1">
+        <div class="font-bold" style="font-size:13px">${ins.name}</div>
+        <div class="stars">${'★'.repeat(ins.rmRating)}${'☆'.repeat(5-ins.rmRating)}</div>
+        <div class="score-bar mt-4"><div class="score-fill" style="width:${ins.score}%"></div></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:900;color:var(--b600)">${ins.baseCommission}%</div>
+        <div class="text-xs text-blue">commission</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// RFQ FORM
+// ══════════════════════════════════════════════════════
+function syncSlider(inputId, labelId){ document.getElementById(labelId).textContent = document.getElementById(inputId).value + '%'; }
+function selectPriority(el){ document.querySelectorAll('.priority-pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); }
+function toggleIns(el){ el.classList.toggle('on'); }
+function fakeUpload(){
+  const files = document.getElementById('uploaded-files');
+  const names = ['KYC_Document.pdf','Previous_Policy.pdf','GST_Certificate.pdf'];
+  names.forEach(n=>{
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--g50);color:var(--g800);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700';
+    div.textContent = '✓ ' + n;
+    files.appendChild(div);
+  });
+}
+
+async function submitRFQ(e){
+  e.preventDefault();
+  const btn = document.getElementById('submit-rfq-btn');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+  const selectedInsurers = [...document.querySelectorAll('.i-chip.on')].map(c=>c.dataset.ins);
+  const payload = {
+    client: document.getElementById('f-client').value,
+    gst: document.getElementById('f-gst').value,
+    sector: document.getElementById('f-sector').value,
+    state: document.getElementById('f-state').value,
+    type: document.getElementById('f-type').value,
+    sumInsured: document.getElementById('f-si').value,
+    coverage: document.getElementById('f-coverage').value,
+    uwNotes: document.getElementById('f-uw-notes').value,
+    claims: document.getElementById('f-claims').value,
+    insurers: selectedInsurers,
+    weights: { premium: document.getElementById('w-prem').value, claim: document.getElementById('w-claim').value, comp: document.getElementById('w-comp').value, rm: document.getElementById('w-rm').value }
+  };
+  try{
+    const res = await fetch('/api/rfq', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await res.json();
+    if(data.success){
+      btn.textContent = '✓ RFQ Submitted!';
+      btn.style.background = 'var(--g600)';
+      pushNotif(`RFQ ${data.rfq.id} submitted to ${selectedInsurers.length} insurers`);
+      addAuditEntry('RFQ Submitted', 'R.Mehta', data.rfq.id);
+      await loadDashboard();
+      setTimeout(()=>{ showPage('quotes'); loadQuotes(data.rfq.id); }, 1500);
+    }
+  }catch(err){
+    btn.textContent = 'Submit RFQ →';
+    btn.disabled = false;
+    alert('Error submitting RFQ. Is the server running?');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// QUOTES
+// ══════════════════════════════════════════════════════
+let allQuotes = [];
+let currentRFQId = 'RFQ-2025-0891';
+
+function populateRFQSelector(rfqs){
+  const sel = document.getElementById('rfq-selector');
+  if(!sel) return;
+  sel.innerHTML = rfqs.map(r=>`<option value="${r.id}">${r.id} — ${r.client||r.id}</option>`).join('');
+  sel.value = currentRFQId;
+}
+
+async function loadQuotes(rfqId){
+  if(!rfqId) return;
+  currentRFQId = rfqId;
+  const wp = document.getElementById('rw-prem')?.value || 40;
+  const wc = document.getElementById('rw-claim')?.value || 30;
+  const wco = document.getElementById('rw-comp')?.value || 20;
+  const wr = document.getElementById('rw-rm')?.value || 10;
+  try{
+    const res = await fetch(`/api/quotes/${rfqId}?weight_premium=${wp}&weight_claim=${wc}&weight_commission=${wco}&weight_rm=${wr}`);
+    allQuotes = await res.json();
+    renderQuotesTable(allQuotes);
+    renderSummaryCards(allQuotes);
+    renderRankResult(allQuotes);
+    renderRecCard(allQuotes);
+    updateLiveStatus(rfqId);
+  }catch(e){ console.error(e); }
+}
+
+function renderQuotesTable(quotes, sortKey='weightedScore'){
+  const sorted = [...quotes].sort((a,b)=> sortKey==='premium' ? a.premium-b.premium : sortKey==='commission' ? b.commission-a.commission : sortKey==='claims' ? b.claimRatio-a.claimRatio : sortKey==='settle' ? a.settleTime-b.settleTime : sortKey==='rm' ? b.ins.rmRating-a.ins.rmRating : b.weightedScore-a.weightedScore);
+  const rankCls = ['rank-1','rank-2','rank-3','rank-4'];
+  const tbody = document.getElementById('quotes-table-body');
+  if(!sorted.length){ tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--gy200)">No quotes received yet for this RFQ.</td></tr>'; return; }
+  tbody.innerHTML = sorted.map((q,i)=>{
+    const ins = q.ins || {};
+    const stars = '★'.repeat(ins.rmRating||3)+'☆'.repeat(5-(ins.rmRating||3));
+    const isTop = i===0;
+    return `<tr class="${isTop?'highlight':''}">
+      <td><span class="rank ${rankCls[i]||'rank-4'}">${i+1}</span></td>
+      <td>
+        <div class="flex gap-8">
+          <div class="ins-avatar ${ins.cls||''}" style="width:28px;height:28px;font-size:9px">${ins.short||'?'}</div>
+          <div>
+            <div class="font-bold" style="font-size:12px">${q.insurerName}</div>
+            ${isTop?'<span class="tag tag-navy">Recommended</span>':''}
+          </div>
+        </div>
+      </td>
+      <td><strong>₹${(q.premium||0).toLocaleString('en-IN')}</strong>${isTop?'<div class="text-xs text-green">Best Rate</div>':''}</td>
+      <td><strong class="text-green">${q.commission}%</strong>${ins.renewalBonus>0?`<div class="text-xs text-blue">+${ins.renewalBonus}% renewal</div>`:''}</td>
+      <td><strong class="${q.claimRatio>=96?'text-green':q.claimRatio>=90?'':'text-amber'}">${q.claimRatio}%</strong></td>
+      <td><strong>${q.settleTime} days</strong></td>
+      <td><span style="color:#E6A817">${stars}</span></td>
+      <td>
+        <div class="font-bold" style="font-size:16px;color:var(--b600)">${q.weightedScore}</div>
+        <div class="score-bar"><div class="score-fill" style="width:${q.weightedScore}%"></div></div>
+      </td>
+      <td>
+        <div class="flex gap-8">
+          <button class="btn btn-primary btn-xs" onclick="selectQuote('${q.insurerId}')">Select</button>
+          <button class="btn btn-outline btn-xs" onclick="showPage('support')">Chat</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSummaryCards(quotes){
+  const el = document.getElementById('quote-summary-cards');
+  if(!quotes.length){ el.innerHTML=''; return; }
+  const bestPrem = quotes.reduce((a,b)=>a.premium<b.premium?a:b);
+  const bestClaim = quotes.reduce((a,b)=>a.settleTime<b.settleTime?a:b);
+  const bestComm = quotes.reduce((a,b)=>a.commission>b.commission?a:b);
+  const bestOverall = quotes.reduce((a,b)=>a.weightedScore>b.weightedScore?a:b);
+  const summaries = [
+    {label:'Best Premium',ins:bestPrem.ins,val:`₹${(bestPrem.premium||0).toLocaleString('en-IN')}`,cls:''},
+    {label:'Fastest Claims',ins:bestClaim.ins,val:`${bestClaim.settleTime} days avg`,cls:'text-green'},
+    {label:'Best Commission',ins:bestComm.ins,val:`${bestComm.commission}% + bonus`,cls:'text-amber'},
+    {label:'Best Overall',ins:bestOverall.ins,val:`Score: ${bestOverall.weightedScore}/100`,cls:'text-blue',highlight:true},
+  ];
+  el.innerHTML = summaries.map(s=>`
+    <div class="card" style="text-align:center;padding:12px;${s.highlight?'border:2px solid var(--b600)':''}">
+      <div class="text-xs font-bold" style="color:var(--b600);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">${s.label}</div>
+      <div class="ins-avatar ${s.ins?.cls||''}" style="margin:0 auto 6px;width:32px;height:32px;font-size:9px">${s.ins?.short||'?'}</div>
+      <div class="font-bold" style="font-size:13px">${s.ins?.name||'—'}</div>
+      <div class="text-sm ${s.cls}" style="margin-top:3px">${s.val}</div>
+    </div>
+  `).join('');
+}
+
+function filterQuotes(key, el){
+  document.querySelectorAll('.f-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  renderQuotesTable(allQuotes, key);
+}
+
+function updateLiveStatus(rfqId){
+  const el = document.getElementById('live-status-row');
+  el.innerHTML = INSURERS.map(ins=>{
+    const hasQuote = allQuotes.find(q=>q.insurerId===ins.id);
+    return `<div class="quote-live-row">
+      <div class="quote-live-dot ${hasQuote?'dot-green':'dot-amber'}"></div>
+      <div class="ins-avatar ${ins.cls}" style="width:24px;height:24px;font-size:8px">${ins.short}</div>
+      <strong style="font-size:12px">${ins.name}</strong>
+      <span style="font-size:11px;color:var(--b400)">${hasQuote?`Quote received — ₹${(hasQuote.premium||0).toLocaleString('en-IN')}`:rfqId==='RFQ-2025-0890'&&ins.id==='icici'?'Preparing quote...':'Awaiting response...'}</span>
+      ${hasQuote?`<span class="tag tag-green" style="margin-left:auto">Received</span>`:`<span class="tag tag-amber" style="margin-left:auto">Pending</span>`}
+    </div>`;
+  }).join('');
+}
+
+function handleQuoteReceived(data){
+  pushNotif(`Quote received from ${data.quote.insurerName} for ${data.rfqId}`);
+  addAuditEntry('Quote Received', 'System', data.rfqId);
+  if(currentRFQId === data.rfqId) loadQuotes(data.rfqId);
+  loadDashboard();
+}
+
+function selectQuote(insId){
+  const ins = INSURERS.find(i=>i.id===insId);
+  addAuditEntry('Quote Accepted', 'R.Mehta', currentRFQId);
+  pushNotif(`Quote from ${ins?.name||insId} selected for ${currentRFQId}`);
+  alert(`✅ Quote from ${ins?.name||insId} selected!\n\nNext step: Policy issuance will begin. RM has been notified.\n\nAudit log updated.`);
+}
+
+// ══════════════════════════════════════════════════════
+// RANKING
+// ══════════════════════════════════════════════════════
+async function rerank(){
+  await loadQuotes(currentRFQId);
+}
+
+function renderRecCard(quotes){
+  const el = document.getElementById('rec-card-wrap');
+  if(!el||!quotes.length) return;
+  const top = quotes[0];
+  const ins = top.ins || {};
+  el.innerHTML = `<div class="rec-card">
+    <div class="rec-label">System Recommendation</div>
+    <div class="rec-name">${ins.name || top.insurerName}</div>
+    <div class="rec-desc">Ranks #1 across your weighted criteria. Best premium ₹${(top.premium||0).toLocaleString('en-IN')}, ${ins.claimRatio||top.claimRatio}% claim ratio, ${top.commission}% commission, ${ins.rmRating}-star RM support.</div>
+    <div class="rec-tags">
+      <span class="rec-tag">Best Premium</span>
+      <span class="rec-tag">${top.commission}% Commission</span>
+      <span class="rec-tag">${ins.claimRatio||top.claimRatio}% Claim Ratio</span>
+      <span class="rec-tag">${ins.settleTime||top.settleTime}-Day Settlement</span>
+    </div>
+  </div>`;
+}
+
+function renderRankResult(quotes){
+  const el = document.getElementById('rank-result-list');
+  if(!el) return;
+  const rankCls = ['rank-1','rank-2','rank-3','rank-4'];
+  const bgCls = ['var(--g50)','var(--b50)','#f8fbff','#f8fbff'];
+  el.innerHTML = quotes.map((q,i)=>`
+    <div class="flex gap-12 mb-8" style="padding:10px;background:${bgCls[i]||'#f8fbff'};border-radius:8px;border:1px solid var(--b50)">
+      <span class="rank ${rankCls[i]||'rank-4'}" style="width:28px;height:28px;font-size:13px">${i+1}</span>
+      <div class="ins-avatar ${q.ins?.cls||''}" style="width:28px;height:28px;font-size:9px">${q.ins?.short||'?'}</div>
+      <div style="flex:1">
+        <div class="font-bold" style="font-size:13px">${q.insurerName}</div>
+        <div class="score-bar mt-4"><div class="score-fill ${i===0?'green':''}" style="width:${q.weightedScore}%"></div></div>
+      </div>
+      <div class="font-bold" style="font-size:18px;color:${i===0?'var(--g600)':'var(--b600)'}">${q.weightedScore}</div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// COMPENSATION BIDS
+// ══════════════════════════════════════════════════════
+function renderBids(){
+  const el = document.getElementById('bid-cards');
+  const extras = {
+    bajaj:['Renewal Bonus: 2% additional on on-time renewals','Q3 Campaign: ₹25,000 extra on 10+ policies','Volume Incentive: ₹50,000 for ₹1Cr+ premium','Commission Payment: Within 7 working days','Claim Support Priority: Express lane'],
+    hdfc:['Q4 Bonus: ₹15,000 for 5+ motor policies','Faster Claim Support: Priority queue','Renewal Payment: Instant on issuance','Commission Payment: Within 10 working days'],
+    icici:['Flat Incentive: ₹5,000 on issuance','Portfolio Bonus: 1% on ₹50L+ portfolio','Commission Payment: Within 15 working days'],
+    tata:['SME Campaign Reward: ₹3,000 per policy','Commission Payment: Within 20 working days'],
+  };
+  const earning = {bajaj:'₹2.18L',hdfc:'₹1.97L',icici:'₹1.74L',tata:'₹1.62L'};
+  el.innerHTML = INSURERS.map((ins,i)=>`
+    <div class="bid-card ${i===0?'top':''}">
+      ${i===0?'<div class="bid-top-badge">TOP BID</div>':''}
+      <div class="flex gap-12">
+        <div class="ins-avatar ${ins.cls}">${ins.short}</div>
+        <div>
+          <div class="font-bold" style="font-size:14px">${ins.name}</div>
+          <div class="text-xs text-blue">Updated ${i===0?'2 hrs':i===1?'5 hrs':i===2?'1 day':'2 days'} ago</div>
+        </div>
+      </div>
+      <div class="bid-val"><span>${ins.baseCommission}%</span> Base Commission</div>
+      <div class="bid-extras">
+        ${(extras[ins.id]||[]).map(e=>`<div class="bid-extra">${e}</div>`).join('')}
+      </div>
+      <div class="bid-earn">Est. Annual Earning on Policy: ${earning[ins.id]||'—'}</div>
+      <div class="flex gap-8" style="margin-top:10px">
+        <button class="btn btn-primary btn-sm" onclick="smartHelp('${ins.id}','commission')">Negotiate ↗</button>
+        <button class="btn btn-outline btn-sm" onclick="showPage('support')">Chat RM</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// RELIABILITY
+// ══════════════════════════════════════════════════════
+function renderReliability(){
+  renderRelGrid('rel-claims-grid', ins=>[
+    {k:'Claim Settlement Ratio', v:`${ins.claimRatio}%`, cls:ins.claimRatio>=96?'good':ins.claimRatio>=90?'':'warn'},
+    {k:'Avg Settlement Time', v:`${ins.settleTime} days`, cls:ins.settleTime<=18?'good':ins.settleTime<=24?'':'warn'},
+    {k:'Rejection Ratio', v:`${ins.rejectionRatio}%`, cls:ins.rejectionRatio<=3?'good':ins.rejectionRatio<=8?'warn':'bad'},
+    {k:'Escalation Speed', v:['Same day','Next day','2 days','3–5 days'][INSURERS.indexOf(ins)], cls:INSURERS.indexOf(ins)===0?'good':INSURERS.indexOf(ins)===1?'good':'warn'},
+    {k:'Cashless Network', v:`${ins.cashless.toLocaleString()}+ garages`, cls:''},
+  ]);
+  renderRelGrid('rel-comp-grid', ins=>[
+    {k:'Commission Payment Speed', v:`${ins.commPayDays} days`, cls:ins.commPayDays<=7?'good':ins.commPayDays<=12?'':'warn'},
+    {k:'Delayed Commission History', v:['None','1 minor delay','3 delays','6 delays'][INSURERS.indexOf(ins)], cls:INSURERS.indexOf(ins)===0?'good':INSURERS.indexOf(ins)===1?'good':INSURERS.indexOf(ins)===2?'warn':'bad'},
+    {k:'Bonus Consistency', v:ins.bonusConsistency, cls:parseInt(ins.bonusConsistency)>=95?'good':parseInt(ins.bonusConsistency)>=80?'':'warn'},
+    {k:'Renewal Payment', v:['Instant','7 days','14 days','30+ days'][INSURERS.indexOf(ins)], cls:INSURERS.indexOf(ins)<=1?'good':INSURERS.indexOf(ins)===2?'warn':'bad'},
+  ]);
+  renderRelGrid('rel-rel-grid', ins=>[
+    {k:'RM Support Quality', v:['Excellent','Very Good','Good','Average'][INSURERS.indexOf(ins)], cls:INSURERS.indexOf(ins)===0?'good':INSURERS.indexOf(ins)===1?'good':INSURERS.indexOf(ins)===2?'':'warn'},
+    {k:'UW Response Speed', v:`${ins.uwResponseHrs} hrs`, cls:ins.uwResponseHrs<=4?'good':ins.uwResponseHrs<=8?'':'warn'},
+    {k:'Approval Speed', v:['Same day','Next day','2 days','3–5 days'][INSURERS.indexOf(ins)], cls:INSURERS.indexOf(ins)===0?'good':INSURERS.indexOf(ins)===1?'good':'warn'},
+    {k:'Escalation Quality', v:['24 hrs','48 hrs','3 days','5–7 days'][INSURERS.indexOf(ins)], cls:INSURERS.indexOf(ins)<=1?'good':INSURERS.indexOf(ins)===2?'warn':'bad'},
+  ]);
+  const histBody = document.getElementById('rel-hist-tbody');
+  histBody.innerHTML = HIST.map(h=>`<tr>
+    <td><strong>${INSURERS.find(i=>i.id===h.id)?.name||h.id}</strong></td>
+    <td>${h.policies}</td><td>${h.premium}</td><td>${h.claims}</td>
+    <td class="${h.successCls}" style="font-weight:700">${h.success}</td>
+    <td style="font-weight:700;${parseInt(h.renewal)>=88?'color:var(--g600)':parseInt(h.renewal)>=70?'':'color:var(--a400)'}">${h.renewal}</td>
+    <td style="font-weight:700;${h.disputes==='None'?'color:var(--g600)':h.disputes.includes('pending')?'color:var(--r600)':'color:var(--a400)'}">${h.disputes}</td>
+  </tr>`).join('');
+}
+
+function renderRelGrid(gridId, metricsBuilder){
+  const el = document.getElementById(gridId);
+  el.innerHTML = INSURERS.map(ins=>`
+    <div class="card">
+      <div class="flex-between mb-12">
+        <div>
+          <div class="font-bold" style="font-size:13px">${ins.name}</div>
+          <div class="stars">${'★'.repeat(ins.rmRating)}${'☆'.repeat(5-ins.rmRating)}</div>
+        </div>
+        <div class="ins-avatar ${ins.cls}">${ins.short}</div>
+      </div>
+      ${metricsBuilder(ins).map(m=>`<div class="rel-metric"><span class="rel-key">${m.k}</span><span class="rel-val ${m.cls||''}">${m.v}</span></div>`).join('')}
+    </div>
+  `).join('');
+}
+
+function relTab(el, tabId){
+  document.querySelectorAll('#rel-tabs .tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  ['rel-claims','rel-comp','rel-rel','rel-hist'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
+  const target = document.getElementById(tabId);
+  if(target) target.style.display='block';
+}
+
+// ══════════════════════════════════════════════════════
+// SUPPORT / CHAT PANELS
+// ══════════════════════════════════════════════════════
+function renderSupportPage(){
+  const container = document.getElementById('chat-panels');
+  if(!container) return;
+  container.innerHTML = INSURERS.map(ins=>buildChatPanel(ins,'sup')).join('');
+  // Restore seeded chat history (keyed by insId)
+  INSURERS.forEach(ins=>{
+    renderChatInPanel(`sup-${ins.id}`, chatRooms[ins.id] || []);
+  });
+}
+
+function renderNegotiationPage(){
+  const container = document.getElementById('negotiation-panels');
+  if(!container) return;
+  container.innerHTML = INSURERS.map(ins=>buildChatPanel(ins,'neg')).join('');
+  // Restore chat history for negotiation panels
+  INSURERS.forEach(ins=>{
+    const msgs = (chatRooms[`neg-${ins.id}`] || []);
+    renderChatInPanel(`neg-${ins.id}`, msgs);
+  });
+}
+
+// panelId = 'sup' | 'neg'  → element IDs become  sup-bajaj, neg-bajaj etc.
+function buildChatPanel(ins, mode){
+  const pid = `${mode}-${ins.id}`;
+  const isNeg = mode === 'neg';
+  return `
+    <div>
+      <div class="flex gap-8 mb-8" style="flex-direction:row;align-items:center">
+        <div class="ins-avatar ${ins.cls}" style="width:30px;height:30px;font-size:9px">${ins.short}</div>
+        <div style="flex:1">
+          <div class="font-bold" style="font-size:13px">${ins.name}</div>
+          <div class="text-xs text-green">● ${ins.rmName} (RM) · ${ins.uwName} (UW)</div>
+        </div>
+        ${isNeg?'<span class="tag tag-amber">Negotiation Mode</span>':'<span class="tag tag-blue">Live Chat</span>'}
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <div>
+            <div class="chat-rm-name">${ins.rmName} — ${isNeg?'Zonal Head Connect':'Relationship Manager'}</div>
+            <div class="chat-rm-status">● Online · ${ins.name} ${isNeg?'Senior UW: '+ins.uwName:'Motor Division'} available</div>
+          </div>
+          <button class="btn btn-outline btn-xs" style="color:var(--b100);border-color:rgba(255,255,255,.2);background:transparent" onclick="sendHelpMsg('${pid}','${ins.id}','premium')">Better Rate?</button>
+        </div>
+        <div class="chat-body" id="chat-body-${pid}"></div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chat-input-${pid}"
+            placeholder="${isNeg?'Formal negotiation message to '+ins.rmName+'...':'Message '+ins.rmName+'...'}"
+            onkeydown="if(event.key==='Enter') sendMsgPanel('${pid}','${ins.id}')"/>
+          <button class="chat-send" onclick="sendMsgPanel('${pid}','${ins.id}')">Send</button>
+        </div>
+      </div>
+      <div class="flex gap-8" style="margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-xs" onclick="sendHelpMsg('${pid}','${ins.id}','premium')">💰 Better Premium</button>
+        <button class="btn btn-outline btn-xs" onclick="sendHelpMsg('${pid}','${ins.id}','claim')">⚡ Fast Claim</button>
+        <button class="btn btn-outline btn-xs" onclick="sendHelpMsg('${pid}','${ins.id}','commission')">📈 More Commission</button>
+        <button class="btn btn-outline btn-xs" onclick="sendHelpMsg('${pid}','${ins.id}','escalate')">🔼 Escalate</button>
+      </div>
+    </div>
+  `;
+}
+
+// Render messages into any panel by panelId
+function renderChatInPanel(panelId, msgs){
+  const body = document.getElementById(`chat-body-${panelId}`);
+  if(!body) return;
+  body.innerHTML = '';
+  msgs.forEach(m=>{
+    const div = document.createElement('div');
+    div.className = `chat-msg ${m.role==='rm'?'msg-rm':'msg-user'}`;
+    const time = new Date(m.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    div.innerHTML = `<div class="msg-sender">${escHtml(m.sender)}</div>${escHtml(m.text)}<div class="msg-time">${time}</div>`;
+    body.appendChild(div);
+  });
+  body.scrollTop = body.scrollHeight;
+}
+
+function appendMsgToPanel(panelId, m){
+  const body = document.getElementById(`chat-body-${panelId}`);
+  if(!body) return;
+  // Remove typing indicator if present
+  const typing = body.querySelector('.typing-indicator');
+  if(typing) typing.remove();
+  const div = document.createElement('div');
+  div.className = `chat-msg ${m.role==='rm'?'msg-rm':'msg-user'}`;
+  const time = new Date(m.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML = `<div class="msg-sender">${escHtml(m.sender)}</div>${escHtml(m.text)}<div class="msg-time">${time}</div>`;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function showTypingInPanel(panelId){
+  const body = document.getElementById(`chat-body-${panelId}`);
+  if(!body) return;
+  if(body.querySelector('.typing-indicator')) return;
+  const div = document.createElement('div');
+  div.className = 'typing-indicator';
+  div.textContent = 'RM is typing...';
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+// Send from a specific panel (handles both sup- and neg- prefixes)
+function sendMsgPanel(panelId, insId){
+  const input = document.getElementById(`chat-input-${panelId}`);
+  if(!input) return;
+  const text = input.value.trim();
+  if(!text) return;
+  if(!ws || ws.readyState !== 1){ alert('WebSocket not connected. Make sure the server is running on localhost:3000'); return; }
+
+  const mode = panelId.startsWith('neg') ? 'neg' : 'sup';
+  const roomId = `broker-${mode}-${insId}`;
+
+  // Show user message immediately
+  const userMsg = {id:Date.now()+'', sender:'You (Broker)', text, role:'user', timestamp:new Date().toISOString()};
+  appendMsgToPanel(panelId, userMsg);
+  showTypingInPanel(panelId);
+
+  // Store in local chatRooms keyed by panelId prefix
+  const key = mode==='neg'?`neg-${insId}`:insId;
+  if(!chatRooms[key]) chatRooms[key]=[];
+  chatRooms[key].push(userMsg);
+
+  ws.send(JSON.stringify({type:'chat_message', roomId, insurerId:insId, text, sender:'You (Broker)', panelId}));
+  input.value = '';
+  addAuditEntry('Chat Message Sent','R.Mehta', insId.toUpperCase());
+}
+
+function sendHelpMsg(panelId, insId, helpType){
+  const helpTexts = {
+    premium:'Need Better Premium — requesting special rate from underwriter.',
+    claim:'Need Faster Claim Support — please prioritize claim handling for this client.',
+    commission:'Need Higher Commission — can you offer enhanced compensation?',
+    escalate:'Escalate for Approval — urgent underwriter review required.',
+    discount:'Request Special Discount — high-value corporate client.',
+    rm:'Need Better RM Support — please assign dedicated RM to this account.',
+  };
+  const text = helpTexts[helpType] || 'Need assistance with this policy.';
+  if(!ws || ws.readyState !== 1){ alert('WebSocket not connected. Make sure server is running on localhost:3000'); return; }
+
+  const mode = panelId.startsWith('neg') ? 'neg' : 'sup';
+  const roomId = `broker-${mode}-${insId}`;
+
+  const userMsg = {id:Date.now()+'', sender:'You (Broker)', text, role:'user', timestamp:new Date().toISOString()};
+  appendMsgToPanel(panelId, userMsg);
+  showTypingInPanel(panelId);
+
+  const key = mode==='neg'?`neg-${insId}`:insId;
+  if(!chatRooms[key]) chatRooms[key]=[];
+  chatRooms[key].push(userMsg);
+
+  ws.send(JSON.stringify({type:'chat_message', roomId, insurerId:insId, text, sender:'You (Broker)', panelId}));
+  addAuditEntry('Smart Help Sent','R.Mehta', insId.toUpperCase());
+}
+
+// Bulk smart help for negotiation desk
+function smartHelpDesk(insId, helpType){
+  showPage('negotiation');
+  setTimeout(()=>{
+    INSURERS.forEach(ins=>{
+      sendHelpMsg(`neg-${ins.id}`, ins.id, helpType);
+    });
+  }, 400);
+}
+
+// ══════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+let notifications = [];
+let notifCount = 0;
+function pushNotif(text){
+  notifications.unshift({text, time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), read:false});
+  notifCount++;
+  const badge = document.getElementById('notif-count');
+  badge.textContent = notifCount;
+  badge.style.display = 'inline-block';
+  renderNotifList();
+}
+function renderNotifList(){
+  const el = document.getElementById('notif-list');
+  if(!notifications.length){ el.innerHTML='<div class="notif-empty">No notifications</div>'; return; }
+  el.innerHTML = notifications.slice(0,15).map(n=>`<div class="notif-item ${n.read?'':'unread'}"><div>${escHtml(n.text)}</div><div class="notif-time">${n.time}</div></div>`).join('');
+}
+function toggleNotif(){
+  const panel = document.getElementById('notif-panel');
+  panel.classList.toggle('open');
+}
+function markRead(){
+  notifications.forEach(n=>n.read=true);
+  notifCount=0;
+  document.getElementById('notif-count').textContent='0';
+  renderNotifList();
+}
+document.addEventListener('click', e=>{ if(!e.target.closest('.notif-btn')&&!e.target.closest('.notif-panel')) document.getElementById('notif-panel')?.classList.remove('open'); });
+
+// ══════════════════════════════════════════════════════
+// AUDIT LOG
+// ══════════════════════════════════════════════════════
+const auditLog = [
+  {ts:'26 Apr 09:14',action:'RFQ Submitted',user:'R.Mehta',ref:'RFQ-0891'},
+  {ts:'26 Apr 09:10',action:'Consent Captured',user:'R.Mehta',ref:'Client: Tata Motors'},
+  {ts:'25 Apr 15:42',action:'Policy Issued',user:'R.Mehta',ref:'POL-2025-0780'},
+  {ts:'25 Apr 14:00',action:'Commission Paid',user:'System',ref:'₹48,200 — Bajaj'},
+  {ts:'24 Apr 11:30',action:'Quote Accepted',user:'R.Mehta',ref:'RFQ-0889'},
+];
+function addAuditEntry(action, user, ref){
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  auditLog.unshift({ts:`Today ${ts}`, action, user, ref});
+  renderAuditLog();
+}
+function renderAuditLog(){
+  const el = document.getElementById('audit-tbody');
+  if(!el) return;
+  el.innerHTML = auditLog.slice(0,10).map(a=>`<tr><td class="text-xs text-blue">${a.ts}</td><td class="text-xs">${a.action}</td><td class="text-xs">${a.user}</td><td class="text-xs text-blue">${a.ref}</td></tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// SEED INITIAL CHAT
+// ══════════════════════════════════════════════════════
+const seedMsgs = {
+  'bajaj':[
+    {id:'s1',sender:'Priya Sharma · Bajaj Allianz GI',text:'Hello! I can see your RFQ for Motor Fleet. Happy to offer our best rate — clean claims history noted. 👍',role:'rm',timestamp:new Date(Date.now()-300000).toISOString()},
+    {id:'s2',sender:'You (Broker)',text:'Can you improve the premium slightly? SI is ₹5Cr.',role:'user',timestamp:new Date(Date.now()-240000).toISOString()},
+    {id:'s3',sender:'Priya Sharma · Bajaj Allianz GI',text:'Checked with UW Rajesh Kumar — we can reduce premium by ₹12,000 and add engine protection at no extra cost. Final: ₹4,70,000. ✓',role:'rm',timestamp:new Date(Date.now()-180000).toISOString()},
+  ],
+  'hdfc':[
+    {id:'h1',sender:'Amit Verma · HDFC ERGO',text:'Hi! HDFC ERGO here. Quote submitted — fastest 14-day claim settlement in the industry.',role:'rm',timestamp:new Date(Date.now()-200000).toISOString()},
+  ],
+  'icici':[
+    {id:'i1',sender:'Deepak Patel · ICICI Lombard',text:'Hello! ICICI Lombard here — largest cashless network with 9,100+ garages. Ready to discuss your RFQ.',role:'rm',timestamp:new Date(Date.now()-150000).toISOString()},
+  ],
+  'tata':[
+    {id:'t1',sender:'Rohit Singh · TATA AIG',text:'Hello from TATA AIG! We have reviewed your RFQ and submitted our best quote. Happy to discuss.',role:'rm',timestamp:new Date(Date.now()-100000).toISOString()},
+  ],
+};
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async ()=>{
+  // Pre-seed chat rooms with the insurer id as key (used by support panels)
+  Object.assign(chatRooms, seedMsgs);
+  connectWS();
+  await loadDashboard();
+  renderBids();
+  renderReliability();
+  renderAuditLog();
+  await loadQuotes('RFQ-2025-0891');
+  populateRFQSelector([
+    {id:'RFQ-2025-0891',client:'Tata Motors Ltd'},
+    {id:'RFQ-2025-0890',client:'ABC Pharma Pvt Ltd'},
+    {id:'RFQ-2025-0889',client:'Sun Healthcare'},
+    {id:'RFQ-2025-0888',client:'Reliance Infra Ltd'},
+  ]);
+  try{
+    const rfqRes = await fetch('/api/rfqs');
+    const rfqs = await rfqRes.json();
+    populateRFQSelector(rfqs);
+  }catch(e){}
+});
+</script>
+</body>
+</html>
